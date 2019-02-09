@@ -175,8 +175,8 @@ final class Editor implements EditorInterface
             list( $x, $y ) = $position->getXY( $image->getWidth(), $image->getHeight(), $cropWidth, $cropHeight );
 
         }
-
         $image->getCore()->cropImage($cropWidth, $cropHeight, $x, $y);
+        $image->getCore()->setImagePage(0, 0, 0, 0);    // fix crop on gif image.
 
         return $this;
     }

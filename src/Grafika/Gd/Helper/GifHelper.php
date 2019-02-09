@@ -3,6 +3,8 @@ namespace Grafika\Gd\Helper;
 
 final class GifHelper {
 
+    private $isAnimated = false;
+
     /**
      * @param $imageFile
      *
@@ -18,6 +20,7 @@ final class GifHelper {
 
         $size = filesize( $imageFile );
         $bytes = fread($fp, $size);
+        $this->isAnimated = strpos($bytes,chr(0x21).chr(0xff).chr(0x0b).'NETSCAPE2.0') === FALSE?false:true;
         $bytes = unpack('H*', $bytes); // Unpack as hex
         $bytes = $bytes[1];
         fclose($fp);
@@ -43,17 +46,7 @@ final class GifHelper {
      * @return bool
      */
     public function isAnimated($bytes){
-
-        $bytes->setPosition(13);
-        $lastPos = $bytes->getPosition();
-        $gceCount = 0;
-        while (($lastPos = $bytes->find('21f904', $lastPos))!== false) {
-            $gceCount++;
-            if($gceCount>1){
-                return true;
-            }
-        }
-        return false;
+        return $this->isAnimated;
     }
 
     /**
