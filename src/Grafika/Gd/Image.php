@@ -111,6 +111,48 @@ final class Image implements ImageInterface {
         }
     }
 
+    public function gd2Str($fn,$gd)
+    {
+        $fiveMBs = 5 * 1024 * 1024;
+        $fp = fopen("php://temp/maxmemory:$fiveMBs", 'r+');
+        $fn( $gd,$fp);
+        rewind($fp);
+        $content = stream_get_contents($fp);
+        fclose($fp);
+
+        return $content;
+    }
+    /**
+     * Output string of an image in a specified format.
+     *
+     * @param string|ImageType $type Image format of the dump.
+     *
+     * @throws \Exception When unsupported type.
+     */
+    public function blob2Str( $type = 'PNG' ) {
+
+        $type = strtoupper($type);
+        if ( ImageType::GIF == $type ) {
+
+            return $this->gd2Str('imagegif',$this->gd);
+
+        } else if ( ImageType::JPEG == $type ) {
+
+            return $this->gd2Str('imagepng',$this->gd);
+
+        } else if ( ImageType::PNG == $type ) {
+
+            return $this->gd2Str('imagepng',$this->gd);
+
+        } else if ( ImageType::WBMP == $type ) {
+
+            return $this->gd2Str('imagewbmp',$this->gd);
+
+        } else {
+            throw new \Exception( sprintf( 'File type "%s" not supported.', $type ) );
+        }
+    }
+
     /**
      * Create Image from image file.
      *
@@ -120,11 +162,12 @@ final class Image implements ImageInterface {
      * @throws \Exception
      */
     public static function createFromFile( $imageFile ) {
-        if ( ! file_exists( $imageFile ) ) {
-            throw new \Exception( sprintf( 'Could not open "%s". File does not exist.', $imageFile ) );
-        }
+        // if ( ! file_exists( $imageFile ) ) {
+        //     throw new \Exception( sprintf( 'Could not open "%s". File does not exist.', $imageFile ) );
+        // }
 
-        $type = self::_guessType( $imageFile );
+        // $type = self::_guessType( $imageFile );
+        $type = 'GIF';
         if ( ImageType::GIF == $type ) {
 
             return self::_createGif( $imageFile );
@@ -345,6 +388,8 @@ final class Image implements ImageInterface {
         if($animated){
             $blocks = $gift->decode($bytes);
         }
+
+
         $gd = @imagecreatefromgif( $imageFile );
 
         if(!$gd){

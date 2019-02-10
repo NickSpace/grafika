@@ -12,18 +12,27 @@ final class GifHelper {
      * @throws \Exception
      */
     public function open($imageFile){
-        $fp = fopen( $imageFile, 'rb'); // Binary read
-
-        if($fp === false ) {
-            throw new \Exception(sprintf('Error loading file: "%s".', $imageFile));
+        
+        if(gettype($imageFile) == 'resource' && get_resource_type($imageFile) == 'gd'){
+                $fiveMBs = 5 * 1024 * 1024;
+                $fp = fopen("php://temp/maxmemory:$fiveMBs", 'r+');
+                imagegif($imageFile,$fp);
+                rewind($fp);
+                $bytes = stream_get_contents($fp);
+                fclose($fp);
+        }else{
+            $fp = fopen( $imageFile, 'rb'); // Binary read
+            if($fp === false ) {
+                throw new \Exception(sprintf('Error loading file: "%s".', $imageFile));
+            }
+            $size = filesize( $imageFile );
+            $bytes = fread($fp, $size);
+            fclose($fp);
         }
 
-        $size = filesize( $imageFile );
-        $bytes = fread($fp, $size);
         $this->isAnimated = strpos($bytes,chr(0x21).chr(0xff).chr(0x0b).'NETSCAPE2.0') === FALSE?false:true;
         $bytes = unpack('H*', $bytes); // Unpack as hex
         $bytes = $bytes[1];
-        fclose($fp);
 
         return new GifByteStream($bytes);
     }

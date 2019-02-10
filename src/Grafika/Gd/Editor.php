@@ -494,7 +494,12 @@ final class Editor implements EditorInterface
      * @return Editor
      */
     public function open(&$image, $imageFile){
-        $image = Image::createFromFile( $imageFile );
+        if(gettype($imageFile) == 'resource'){
+            $new_image = Image::createFromCore( $imageFile );
+            $image = clone $new_image;
+        }else{
+            $image = Image::createFromFile( $imageFile );
+        }
         return $this;
     }
 
